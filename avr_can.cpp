@@ -139,7 +139,6 @@ uint8_t CANRaw::setNumTXBoxes(uint8_t txboxes) {
 
     c = txboxes;
 	if (txboxes > CANMB_QUANTITY) c = CANMB_QUANTITY;
-	if (txboxes < 0)              c = 0;
     
     numTXBoxes = c;
     
@@ -195,7 +194,7 @@ void CANRaw::attachCANInterrupt(uint8_t mailBox, void (*cb)(CAN_FRAME *))
 
 void CANRaw::detachCANInterrupt(uint8_t mailBox)
 {
-	if ((mailBox < 0) || (mailBox > CANMB_QUANTITY-1)) return;
+	if (mailBox > CANMB_QUANTITY-1) return;
 	cbCANFrame[mailBox] = 0;
 }
 
@@ -497,7 +496,7 @@ bool CANRaw::sendFrame(CAN_FRAME& txFrame)
 {
 	for (int i = (CANMB_QUANTITY - numTXBoxes); i < CANMB_QUANTITY; i++) {          // Search the Tx MObs, looking for one that is not currently busy.
        	   mailbox_set_MOb_index(i);                                                //    Select a Mob
-              if ( (i < 8)   && !(CANEN2 & (1<<i))        ||                        //    1st 8 read-bits in CANEN2.  bit=1 = in use.
+              if ( ((i < 8)   && !(CANEN2 & (1<<i)))        ||                        //    1st 8 read-bits in CANEN2.  bit=1 = in use.
                   ((i >= 8)  && !(CANEN1 & (1<<(i-8)))))                            //    Next 8 in CANEN1
 			{                                                                       //is it available (not sending anything?)
 				mailbox_set_id(i, txFrame.id, txFrame.extended);
@@ -645,7 +644,7 @@ uint8_t CANRaw::mailbox_tx_frame(uint8_t uc_index)
 	mailbox_set_MOb_index(uc_index);                                        // Select Mob, set data index = 0 w/auto increment of message reg pointer..
 
     /* Read the mailbox status firstly to check whether the mailbox is ready or not. */
-   if ( (uc_index < 8)   && (CANEN2 & (1<< uc_index))       ||              //    1st 8 read-bits in CANEN2,  next 8 in CANEN1.  bit=1 = in use.
+   if ( ((uc_index < 8)   && (CANEN2 & (1<< uc_index)))       ||              //    1st 8 read-bits in CANEN2,  next 8 in CANEN1.  bit=1 = in use.
        ((uc_index >= 8)  && (CANEN1 & (1<<(uc_index-8)))))      return CAN_MAILBOX_NOT_READY;  
 	
     /* Set the MBx bit in the Transfer Command Register to send out the remote frame. */
@@ -994,14 +993,14 @@ CANListener::CANListener()
 }
 
 //an empty version so that the linker doesn't complain that no implementation exists.
-void CANListener::gotFrame(CAN_FRAME *frame, int mailbox)
+void CANListener::gotFrame(CAN_FRAME *frame __attribute__((unused)),
+        int mailbox __attribute__((unused)))
 {
-  
 }
 
 void CANListener::attachMBHandler(uint8_t mailBox)
 {
-	if (mailBox >= 0 && mailBox < CANMB_QUANTITY)
+	if (mailBox < CANMB_QUANTITY)
 	{
 		callbacksActive |= (1<<mailBox);
 	}
@@ -1009,7 +1008,7 @@ void CANListener::attachMBHandler(uint8_t mailBox)
 
 void CANListener::detachMBHandler(uint8_t mailBox)
 {
-	if (mailBox >= 0 && mailBox < CANMB_QUANTITY)
+	if (mailBox < CANMB_QUANTITY)
 	{
 		callbacksActive &= ~(1<<mailBox);
 	}  

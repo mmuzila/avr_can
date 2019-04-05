@@ -42,7 +42,6 @@
 #include <avr/pgmspace.h>
 
 #define CAN		Can0
-#define NULL    0
 
 /**  Some CPU specific selections, device at compile time based on targeted CPU  */
 /** How many mailboxes are contained in the hardware?  (due had 8x) */ 
@@ -96,8 +95,8 @@
                 //!< STD ID TAG writing
 #define Can_set_std_id(identifier)  { CANIDT1   = CAN_SET_STD_ID_10_4(identifier); \
                                       CANIDT2   = CAN_SET_STD_ID_3_0( identifier); \
-                                      CANIDT3   = 0;                               \  
-                                      CANIDT4   = 0;                               \  
+                                      CANIDT3   = 0;                               \
+                                      CANIDT4   = 0;                               \
                                       CANCDMOB &= (~(1<<IDE));                     }     // Make sure to initialize the RTRTAG & RB0TAG bits (CANIDT4)
     // ----------
                 //!< STD ID MASK writing
